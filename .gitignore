@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+
+venv/
+.venv/
+
+
+.env
+
+
+data/raw/*
+data/bronze/*
+data/silver/*
+data/gold/*
+!data/**/.gitkeep
+
+
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
