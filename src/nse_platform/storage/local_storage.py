@@ -1,9 +1,9 @@
-
-
 from pathlib import Path
 
+from nse_platform.storage.base_storage import BaseStorage
 
-class LocalStorage:
+
+class LocalStorage(BaseStorage):
     def __init__(self, root: Path):
         self.root = root
 
