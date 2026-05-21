@@ -11,7 +11,7 @@ class NseClient:
     """Fetches NSE bhavcopy ZIPs. Handles URL routing, retries, validation."""
 
     def __init__(self, base_url, udiff_cutover, timeout=30, max_retries=3, logger=None):
-        self.logger = logger or make_logger("nse_platform.source.nse_client")
+        self.logger = logger or make_logger("nse_platform.sources.nse_client")
         self.base_url = base_url.rstrip("/")
         self.udiff_cutover = udiff_cutover
         self.timeout = timeout
