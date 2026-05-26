@@ -27,18 +27,29 @@ class NseClient:
             "Accept-Language": "en-US,en;q=0.9",
         })
 
-    def build_url(self, d: date):
-        """Pick old or UDiFF URL based on cutover date."""
+    def filename_for(self, d: date) -> str:
+        """Return just the bhavcopy filename (no path) for date d."""
 
         if d < self.udiff_cutover:
-            url = f"{self.base_url}/content/historical/EQUITIES/{d.year}/{d.strftime('%b').upper()}/cm{format_for_nse_filename(d)}bhav.csv.zip"
+            return f"cm{format_for_nse_filename(d)}bhav.csv.zip"
         else:
-            url = f"{self.base_url}/content/cm/BhavCopy_NSE_CM_0_0_0_{d.strftime("%Y%m%d")}_F_0000.csv.zip"
+            return f"BhavCopy_NSE_CM_0_0_0_{d.strftime('%Y%m%d')}_F_0000.csv.zip"
+
+    def build_url(self, d: date) -> str:
+        """Pick old or UDiFF URL based on cutover date."""
+
+        filename = self.filename_for(d)
+        if d < self.udiff_cutover:
+            subdir = f"content/historical/EQUITIES/{d.year}/{d.strftime('%b').upper()}"
+        else:
+            subdir = "content/cm"
+        url = f"{self.base_url}/{subdir}/{filename}"
         self.logger.info(f"resolved URL for {d}: {url}")
         return url
 
     def fetch_bhavcopy(self, d: date) -> bytes:
         """Download the bhavcopy ZIP for date d. Returns raw bytes."""
+
         url = self.build_url(d)
         for attempt in range(self.max_retries):
             try:
