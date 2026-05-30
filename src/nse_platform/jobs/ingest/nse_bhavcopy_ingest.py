@@ -1,5 +1,5 @@
 
-from nse_platform.jobs.ingest.base_ingest_job import BaseIngestJob
+from nse_platform.jobs.base_ingest_job import BaseIngestJob
 
 
 class NseBhavcopyIngestJob(BaseIngestJob):
