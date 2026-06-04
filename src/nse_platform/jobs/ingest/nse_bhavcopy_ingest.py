@@ -1,5 +1,6 @@
 
-from nse_platform.jobs.base_ingest_job import BaseIngestJob
+from nse_platform.jobs.base.base_ingest_job import BaseIngestJob
+from nse_platform.utils.path_builder import raw_bhavcopy_key
 
 
 class NseBhavcopyIngestJob(BaseIngestJob):
@@ -17,19 +18,10 @@ class NseBhavcopyIngestJob(BaseIngestJob):
         return raw
 
     def load(self, transformed):
-        key = self._build_key(self.ec.run_date)
+        filename = self.nse_client.filename_for(self.ec.run_date)
+        key = raw_bhavcopy_key(self.ec.run_date, filename)
         if self.storage.exists(key):
             self.ec.logger.info(f"already ingested at {key}, skipping write")
             return
         self.storage.put(key, transformed)
         self.ec.logger.info(f"wrote {len(transformed)} bytes to {key}")
-
-    def _build_key(self, d):
-        """ Builds a partitioned path"""
-
-        filename = self.nse_client.filename_for(d)
-        return (
-            f"raw/equity/nse/bhavcopy/"
-            f"year={d.year}/month={d.month:02d}/day={d.day:02d}/"
-            f"{filename}"
-        )

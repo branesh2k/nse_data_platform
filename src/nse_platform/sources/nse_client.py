@@ -3,8 +3,8 @@ import time
 import requests
 from datetime import date
 
-from nse_platform.utils.dates import format_for_nse_filename
 from nse_platform.utils.logging import make_logger
+from nse_platform.utils.path_builder import filename_for as build_filename
 
 
 class NseClient:
@@ -26,14 +26,6 @@ class NseClient:
             "Accept": "*/*",
             "Accept-Language": "en-US,en;q=0.9",
         })
-
-    def filename_for(self, d: date) -> str:
-        """Return just the bhavcopy filename (no path) for date d."""
-
-        if d < self.udiff_cutover:
-            return f"cm{format_for_nse_filename(d)}bhav.csv.zip"
-        else:
-            return f"BhavCopy_NSE_CM_0_0_0_{d.strftime('%Y%m%d')}_F_0000.csv.zip"
 
     def build_url(self, d: date) -> str:
         """Pick old or UDiFF URL based on cutover date."""
@@ -75,3 +67,6 @@ class NseClient:
                     f"attempt {attempt + 1} failed ({e}), retrying in {sleep_s}s"
                 )
                 time.sleep(sleep_s)
+
+    def filename_for(self, d):
+        return build_filename(d, self.udiff_cutover)

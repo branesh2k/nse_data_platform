@@ -1,4 +1,4 @@
-from nse_platform.jobs.base_job import BaseJob
+from nse_platform.jobs.base.base_job import BaseJob
 from nse_platform.storage.base_storage import BaseStorage
 from nse_platform.context.execution_context import ExecutionContext
 
