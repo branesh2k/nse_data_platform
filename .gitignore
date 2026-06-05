@@ -10,7 +10,7 @@ htmlcov/
 venv/
 .venv/
 
-
+glossary.md
 .env
 scratch/
 

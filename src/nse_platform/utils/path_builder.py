@@ -18,6 +18,13 @@ def bronze_bhavcopy_path(d: date) -> str:
     )
 
 
+def silver_bhavcopy_path(d: date) -> str:
+    return (
+        f"data/silver/equity/nse/bhavcopy/"
+        f"year={d.year}/month={d.month:02d}/day={d.day:02d}/"
+    )
+
+
 def filename_for(d: date, cutover: date) -> str:
     """Return just the bhavcopy filename (no path) for date d."""
 
