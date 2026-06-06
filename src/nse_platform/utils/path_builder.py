@@ -11,6 +11,13 @@ def raw_bhavcopy_key(d: date, filename: str) -> str:
     )
 
 
+def raw_index_key(d: date, filename: str) -> str:
+    return (
+        f"raw/index/nse/year={d.year}/month={d.month:02d}/day={d.day:02d}/"
+        f"{filename}"
+    )
+
+
 def bronze_bhavcopy_path(d: date) -> str:
     return (
         f"data/bronze/equity/nse/bhavcopy/"
