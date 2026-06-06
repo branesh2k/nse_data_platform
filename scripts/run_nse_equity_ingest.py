@@ -4,7 +4,7 @@ from nse_platform.config.settings import settings
 from nse_platform.context.execution_context import ExecutionContext
 from nse_platform.storage.local_storage import LocalStorage
 from nse_platform.sources.nse_client import NseClient
-from nse_platform.jobs.equity.nse_bhavcopy_ingest import NseBhavcopyIngestJob
+from nse_platform.jobs.equity.ingest import NseBhavcopyIngestJob
 
 
 def main():
