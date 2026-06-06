@@ -79,3 +79,6 @@ class NseClient:
 
     def filename_for(self, d):
         return build_filename(d, self.udiff_cutover)
+
+    def filename_for_index(self, d):
+        return f"ind_close_all_{d.strftime('%d%m%Y')}.csv"
