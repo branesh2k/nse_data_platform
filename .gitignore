@@ -12,7 +12,7 @@ venv/
 
 glossary.md
 .env
-scratch/
+# scratch/
 
 data/raw/*
 data/bronze/*
