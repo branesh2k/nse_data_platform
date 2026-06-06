@@ -27,35 +27,33 @@ class NseClient:
             "Accept-Language": "en-US,en;q=0.9",
         })
 
-    def build_url(self, d: date) -> str:
-        """Pick old or UDiFF URL based on cutover date."""
-
-        filename = self.filename_for(d)
+    def build_bhavcopy_url(self, d: date) -> str:
+        filename = build_filename(d, self.udiff_cutover)
         if d < self.udiff_cutover:
             subdir = f"content/historical/EQUITIES/{d.year}/{d.strftime('%b').upper()}"
         else:
             subdir = "content/cm"
         url = f"{self.base_url}/{subdir}/{filename}"
-        self.logger.info(f"resolved URL for {d}: {url}")
+        self.logger.info(f"resolved bhavcopy URL for {d}: {url}")
         return url
 
-    def fetch_bhavcopy(self, d: date) -> bytes:
-        """Download the bhavcopy ZIP for date d. Returns raw bytes."""
+    def build_index_url(self, d: date) -> str:
+        filename = f"ind_close_all_{d.strftime('%d%m%Y')}.csv"
+        url = f"{self.base_url}/content/indices/{filename}"
+        self.logger.info(f"resolved index URL for {d}: {url}")
+        return url
 
-        url = self.build_url(d)
+    def _get(self, url: str, label: str) -> bytes:
+        """Download raw bytes from any NSE URL."""
+
         for attempt in range(self.max_retries):
             try:
                 resp = self.session.get(url, timeout=self.timeout)
                 if resp.status_code == 404:
-                    raise FileNotFoundError(f"no bhavcopy at {url}")
+                    raise FileNotFoundError(f"no file at {url}")
                 resp.raise_for_status()
-                if not resp.content.startswith(b"PK"):
-                    raise ValueError(
-                        f"response is not a ZIP (got {resp.content[:20]!r})"
-                    )
                 self.logger.info(
-                    f"fetched {len(resp.content)} bytes for {d}"
-                )
+                    f"fetched {len(resp.content)} bytes for {label}")
                 return resp.content
             except (requests.ConnectionError, requests.Timeout) as e:
                 if attempt == self.max_retries - 1:
@@ -64,9 +62,20 @@ class NseClient:
                     raise
                 sleep_s = 2 ** attempt
                 self.logger.warning(
-                    f"attempt {attempt + 1} failed ({e}), retrying in {sleep_s}s"
-                )
+                    f"attempt {attempt + 1} failed ({e}), retrying in {sleep_s}s")
                 time.sleep(sleep_s)
+
+    def fetch_bhavcopy(self, d: date) -> bytes:
+        url = self.build_bhavcopy_url(d)
+        content = self._get(url, label=f"bhavcopy {d}")
+        if not content.startswith(b"PK"):
+            raise ValueError(f"response is not a ZIP (got {content[:20]!r})")
+        return content
+
+    def fetch_index(self, d: date) -> bytes:
+        url = self.build_index_url(d)
+        content = self._get(url, label=f"index {d}")
+        return content
 
     def filename_for(self, d):
         return build_filename(d, self.udiff_cutover)
