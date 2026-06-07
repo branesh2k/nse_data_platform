@@ -12,7 +12,8 @@ class EquitySilverJob(BaseSparkJob):
         super().__init__(ec, storage)
 
     def extract(self):
-        bronze_path = bronze_bhavcopy_path(self.ec.run_date)
+        path = bronze_bhavcopy_path(self.ec.run_date)
+        bronze_path = f"{settings.LOCAL_DATA_ROOT}/{path}"
         self.ec.logger.info(f"reading bronze data from {bronze_path}")
         return self.spark.read.parquet(bronze_path)
 
@@ -74,6 +75,6 @@ class EquitySilverJob(BaseSparkJob):
 
     def load(self, transformed):
 
-        output_path = silver_bhavcopy_path(self.ec.run_date)
+        output_path = f"{settings.LOCAL_DATA_ROOT}/{silver_bhavcopy_path(self.ec.run_date)}"
         transformed.write.mode("overwrite").parquet(output_path)
         self.ec.logger.info(f"silver data loaded as parquet in {output_path}")
