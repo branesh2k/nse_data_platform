@@ -39,4 +39,5 @@ class BaseJob(ABC):
         finally:
             duration = (datetime.now() -
                         self.ec.started_at).total_seconds()
-        self.ec.logger.info(f"{self.ec.job_name} finished in {duration:.2f}s")
+            self.ec.logger.info(
+                f"{self.ec.job_name} finished in {duration:.2f}s")
