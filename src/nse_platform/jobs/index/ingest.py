@@ -1,6 +1,6 @@
 from nse_platform.jobs.base.base_ingest_job import BaseIngestJob
 from nse_platform.sources.nse_client import NseClient
-from nse_platform.utils.path_builder import raw_index_key
+from nse_platform.utils.path_builder import filename_for_index, raw_index_key
 
 
 class NseIndexIngestJob(BaseIngestJob):
@@ -17,7 +17,7 @@ class NseIndexIngestJob(BaseIngestJob):
         return raw
 
     def load(self, transformed):
-        filename = self.nse_client.filename_for_index(self.ec.run_date)
+        filename = filename_for_index(self.ec.run_date)
         key = raw_index_key(self.ec.run_date, filename)
         if self.storage.exists(key):
             self.ec.logger.info(
