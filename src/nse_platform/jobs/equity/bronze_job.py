@@ -6,7 +6,7 @@ from nse_platform.utils.path_builder import bronze_bhavcopy_path, filename_for, 
 from nse_platform.utils.zip_utils import unzip_single_csv
 
 
-class BronzeJob(BaseSparkJob):
+class EquityBronzeJob(BaseSparkJob):
     def __init__(self, ec, storage):
         super().__init__(ec, storage)
         self.tmp_dir = Path("./data/_tmp")

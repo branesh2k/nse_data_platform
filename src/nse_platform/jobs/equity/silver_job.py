@@ -7,7 +7,7 @@ from pyspark.sql import Window
 from pyspark.sql import functions as F
 
 
-class SilverJob(BaseSparkJob):
+class EquitySilverJob(BaseSparkJob):
     def __init__(self, ec, storage):
         super().__init__(ec, storage)
 
