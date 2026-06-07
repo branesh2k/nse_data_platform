@@ -4,7 +4,7 @@ import requests
 from datetime import date
 
 from nse_platform.utils.logging import make_logger
-from nse_platform.utils.path_builder import filename_for as build_filename
+from nse_platform.utils.path_builder import filename_for as build_filename, filename_for_index
 
 
 class NseClient:
@@ -38,7 +38,7 @@ class NseClient:
         return url
 
     def build_index_url(self, d: date) -> str:
-        filename = f"ind_close_all_{d.strftime('%d%m%Y')}.csv"
+        filename = filename_for_index(d)
         url = f"{self.base_url}/content/indices/{filename}"
         self.logger.info(f"resolved index URL for {d}: {url}")
         return url
@@ -79,6 +79,3 @@ class NseClient:
 
     def filename_for(self, d):
         return build_filename(d, self.udiff_cutover)
-
-    def filename_for_index(self, d):
-        return f"ind_close_all_{d.strftime('%d%m%Y')}.csv"
