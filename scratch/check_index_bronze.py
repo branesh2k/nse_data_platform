@@ -1,5 +1,5 @@
 from nse_platform.context.execution_context import ExecutionContext
-from nse_platform.jobs.index.bronze import IndexBronzeJob
+from nse_platform.jobs.bronze.index_bronze_job import IndexBronzeJob
 from nse_platform.storage.local_storage import LocalStorage
 from nse_platform.config.settings import settings
 

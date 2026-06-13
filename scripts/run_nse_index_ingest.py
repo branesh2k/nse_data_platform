@@ -3,7 +3,7 @@ import sys
 
 from nse_platform.config.settings import settings
 from nse_platform.context.execution_context import ExecutionContext
-from nse_platform.jobs.index.ingest import NseIndexIngestJob
+from nse_platform.jobs.ingest.index_ingest import NseIndexIngestJob
 from nse_platform.sources.nse_client import NseClient
 from nse_platform.storage.local_storage import LocalStorage
 
