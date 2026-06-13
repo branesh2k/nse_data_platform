@@ -2,7 +2,10 @@ import logging
 import uuid
 from datetime import datetime, date
 from dataclasses import dataclass, field
+import sys
+import os
 
+from delta import configure_spark_with_delta_pip
 from pyspark.sql import SparkSession
 
 from nse_platform.config.settings import settings
@@ -40,13 +43,17 @@ class ExecutionContext:
 
     @classmethod
     def for_local_spark(cls, job_name: str, run_date: str, **args) -> "ExecutionContext":
-        """Build a context WITH a local Spark session (for bronze/silver/gold jobs)."""
-        spark = (
+        """Build a context With a local Spark session."""
+        os.environ["PYSPARK_PYTHON"] = sys.executable
+        os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
+        builder = (
             SparkSession.builder
             .appName(job_name)
             .master("local[*]")
-            .getOrCreate()
+            .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+            .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
         )
+        spark = configure_spark_with_delta_pip(builder).getOrCreate()
         spark.sparkContext.setLogLevel("WARN")
         return cls(
             job_name=job_name,
