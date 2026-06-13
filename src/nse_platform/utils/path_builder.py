@@ -51,3 +51,7 @@ def bronze_index_path(d: date) -> str:
 
 def silver_index_path(d: date) -> str:
     return f"silver/index/nse/year={d.year}/month={d.month:02d}/day={d.day:02d}/"
+
+
+def gold_path(d: date) -> str:
+    return f"gold/nse/year={d.year}/month={d.month:02d}/day={d.day:02d}/"
