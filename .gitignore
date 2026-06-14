@@ -13,6 +13,8 @@ venv/
 glossary.md
 .env
 # scratch/
+airflow/logs
+airflow/plugins
 
 data/raw/*
 data/bronze/*
