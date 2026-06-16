@@ -20,7 +20,8 @@ class EquityBronzeJob(BaseSparkJob):
         csv_bytes = unzip_single_csv(zip_bytes)
 
         self.tmp_path.write_bytes(csv_bytes)
-        self.ec.logger.info(f"unzipped csv written to {self.tmp_path}")
+        self.ec.logger.info(
+            f"unzipped csv written to temperory path : {self.tmp_path}")
 
         raw_df = self.spark.read.csv(
             str(self.tmp_path), header=True)
@@ -34,7 +35,8 @@ class EquityBronzeJob(BaseSparkJob):
 
         try:
             transformed.write.mode("overwrite").parquet(output_path)
-            self.ec.logger.info(f"data loaded as parquet in {output_path}")
+            self.ec.logger.info(
+                f"Equity bronze data loaded as parquet in {output_path}")
         finally:
             if self.tmp_path.exists():
                 self.tmp_path.unlink()

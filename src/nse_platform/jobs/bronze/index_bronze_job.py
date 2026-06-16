@@ -13,7 +13,7 @@ class IndexBronzeJob(BaseSparkJob):
         filename = filename_for_index(self.ec.run_date)
         key = raw_index_key(self.ec.run_date, filename)
         path = f"{settings.LOCAL_DATA_ROOT}/{key}"
-        self.ec.logger.info(f"extracting raw data from {path}")
+        self.ec.logger.info(f"Reading Index raw data from {path}")
         return self.spark.read.csv(path, header=True)
 
     def transform(self, raw):
@@ -22,4 +22,4 @@ class IndexBronzeJob(BaseSparkJob):
     def load(self, transformed):
         output_path = f"{settings.LOCAL_DATA_ROOT}/{bronze_index_path(self.ec.run_date)}"
         transformed.write.mode("overwrite").parquet(output_path)
-        self.ec.logger.info(f"Loaded bronze data to {output_path}")
+        self.ec.logger.info(f"Loaded Index bronze data to {output_path}")

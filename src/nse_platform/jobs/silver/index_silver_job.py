@@ -48,4 +48,6 @@ class IndexSilverJob(BaseSparkJob):
 
     def load(self, transformed):
         output_path = f"{settings.LOCAL_DATA_ROOT}/{silver_index_path(self.ec.run_date)}"
-        transformed.write.parquet(output_path)
+        transformed.write.mode("overwrite").parquet(output_path)
+        self.ec.logger.info(
+            f"Equity silver data loaded as parquet in {output_path}")
