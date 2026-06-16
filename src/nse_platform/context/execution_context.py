@@ -5,7 +5,6 @@ from dataclasses import dataclass, field
 import sys
 import os
 
-from delta import configure_spark_with_delta_pip
 from pyspark.sql import SparkSession
 
 from nse_platform.config.settings import settings
@@ -53,7 +52,7 @@ class ExecutionContext:
             .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
             .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
         )
-        spark = configure_spark_with_delta_pip(builder).getOrCreate()
+        spark = builder.getOrCreate()
         spark.sparkContext.setLogLevel("WARN")
         return cls(
             job_name=job_name,
