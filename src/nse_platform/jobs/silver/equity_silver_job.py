@@ -1,6 +1,7 @@
 
 from nse_platform.config.settings import settings
 from nse_platform.jobs.base.base_spark_job import BaseSparkJob
+from nse_platform.quality.checks import check_required_columns
 from nse_platform.utils.path_builder import bronze_bhavcopy_path, silver_bhavcopy_path
 
 from pyspark.sql import Window
@@ -35,6 +36,8 @@ class EquitySilverJob(BaseSparkJob):
                 "TtlNbOfTxsExctd": "total_trades",
                 "ISIN": "isin",
             }
+            check_required_columns(
+                raw, list(COLUMN_MAP_NEW.keys()), self.ec.logger)
             df_renamed = df.withColumnsRenamed(COLUMN_MAP_NEW) \
                 .select([v for k, v in COLUMN_MAP_NEW.items()])
             df_casted_date = df_renamed.withColumn(
@@ -57,6 +60,8 @@ class EquitySilverJob(BaseSparkJob):
                 "TOTALTRADES": "total_trades",
                 "ISIN": "isin",
             }
+            check_required_columns(
+                raw, list(COLUMN_MAP_OLD.keys()), self.ec.logger)
             df_renamed = df.withColumnsRenamed(COLUMN_MAP_OLD) \
                 .select([v for k, v in COLUMN_MAP_OLD.items()])
             df_casted_date = df_renamed.withColumn(

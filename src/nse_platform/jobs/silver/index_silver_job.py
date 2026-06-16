@@ -1,5 +1,6 @@
 from nse_platform.config.settings import settings
 from nse_platform.jobs.base.base_spark_job import BaseSparkJob
+from nse_platform.quality.checks import check_required_columns
 from nse_platform.utils.path_builder import bronze_index_path, silver_index_path
 
 from pyspark.sql import functions as F
@@ -26,6 +27,7 @@ class IndexSilverJob(BaseSparkJob):
             "P/B": "pb",
             "Div Yield": "div_yield",
         }
+        check_required_columns(raw, list(map_columns.keys()), self.ec.logger)
         df = raw.withColumnsRenamed(map_columns).select(
             [c for c in map_columns.values()]
         )
