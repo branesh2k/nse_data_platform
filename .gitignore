@@ -16,6 +16,7 @@ scratch/
 airflow/logs
 airflow/plugins
 
+data/
 data/raw/*
 data/bronze/*
 data/silver/*

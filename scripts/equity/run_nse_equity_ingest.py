@@ -1,4 +1,4 @@
-import sys
+import argparse
 
 from nse_platform.config.settings import settings
 from nse_platform.context.execution_context import ExecutionContext
@@ -8,7 +8,12 @@ from nse_platform.jobs.ingest.equity_ingest import NseBhavcopyIngestJob
 
 
 def main():
-    run_date = sys.argv[1]
+    parser = argparse.ArgumentParser(description="NSE equity bhavcopy ingest")
+    parser.add_argument("--run-date", required=True,
+                        help="run date, YYYY-MM-DD")
+    args = parser.parse_args()
+
+    run_date = args.run_date
     ec = ExecutionContext.for_local("nse_bhavcopy_ingest", run_date)
     storage = LocalStorage(settings.LOCAL_DATA_ROOT)
     nse_client = NseClient(

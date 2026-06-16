@@ -1,0 +1,7 @@
+venv/
+scratch/
+
+.git/
+.gitignore/
+tests/
+glossary.md
