@@ -11,11 +11,11 @@ class StockVsMarketGoldJob(BaseSparkJob):
 
     def extract(self):
         equity_path = f"{settings.LOCAL_DATA_ROOT}/{silver_bhavcopy_path(self.ec.run_date)}"
-        self.ec.logger(f"Reading Equity silver data from {equity_path}")
+        self.ec.logger.info(f"Reading Equity silver data from {equity_path}")
         df_equity = self.spark.read.parquet(equity_path)
 
         index_path = f"{settings.LOCAL_DATA_ROOT}/{silver_index_path(self.ec.run_date)}"
-        self.ec.logger(
+        self.ec.logger.info(
             f"Reading Index silver data from {index_path} and filtering to 'Nifty 50'")
         df_index = self.spark.read.parquet(index_path).filter(
             F.col("index_name") == "Nifty 50")
