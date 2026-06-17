@@ -48,6 +48,10 @@ class IndexSilverJob(BaseSparkJob):
 
         return df
 
+    def validate(self, transformed_data):
+        ...
+        return transformed_data
+
     def load(self, transformed):
         output_path = f"{settings.LOCAL_DATA_ROOT}/{silver_index_path(self.ec.run_date)}"
         transformed.write.mode("overwrite").parquet(output_path)

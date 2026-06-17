@@ -14,7 +14,12 @@ class NseIndexIngestJob(BaseIngestJob):
         return self.nse_client.fetch_index(self.ec.run_date)
 
     def transform(self, raw):
+        self.ec.logger.info("No transformation. skipping...")
         return raw
+
+    def validate(self, transformed_data):
+        self.ec.logger.info("No validation. skipping....")
+        return transformed_data
 
     def load(self, transformed):
         filename = filename_for_index(self.ec.run_date)

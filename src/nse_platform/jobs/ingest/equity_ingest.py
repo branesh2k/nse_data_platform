@@ -14,8 +14,12 @@ class NseBhavcopyIngestJob(BaseIngestJob):
         return self.nse_client.fetch_bhavcopy(self.ec.run_date)
 
     def transform(self, raw):
-        self.ec.logger.info("NO transformation as of now..proceeding to load")
+        self.ec.logger.info("No transformation. skipping...")
         return raw
+
+    def validate(self, transformed_data):
+        self.ec.logger.info("No validation. skipping....")
+        return transformed_data
 
     def load(self, transformed):
         filename = self.nse_client.filename_for(self.ec.run_date)

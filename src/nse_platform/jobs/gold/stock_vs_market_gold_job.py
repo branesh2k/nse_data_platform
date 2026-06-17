@@ -69,6 +69,10 @@ class StockVsMarketGoldJob(BaseSparkJob):
             "stock_return")-F.col("index_return"))
         return df_gold
 
+    def validate(self, transformed_data):
+        ...
+        return transformed_data
+
     def load(self, transformed):
         path = f"{settings.LOCAL_DATA_ROOT}/{gold_path(self.ec.run_date)}"
         self.ec.logger.info(f"Writing gold data to {path}")

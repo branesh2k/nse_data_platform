@@ -78,6 +78,10 @@ class EquitySilverJob(BaseSparkJob):
             "rn", F.row_number().over(w)).filter(F.col("rn") == 1).drop("rn")
         return df_cleaned
 
+    def validate(self, transformed_data):
+        ...
+        return transformed_data
+
     def load(self, transformed):
 
         output_path = f"{settings.LOCAL_DATA_ROOT}/{silver_bhavcopy_path(self.ec.run_date)}"
