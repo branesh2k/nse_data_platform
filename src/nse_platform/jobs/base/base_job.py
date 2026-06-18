@@ -35,7 +35,7 @@ class BaseJob(ABC):
         try:
             data = self.extract()
             transformed_data = self.transform(data)
-            validated = self.validate(data)
+            validated = self.validate(transformed_data)
             self.load(validated)
 
         except Exception as e:
