@@ -17,10 +17,6 @@ class NseBhavcopyIngestJob(BaseIngestJob):
         self.ec.logger.info("No transformation. skipping...")
         return raw
 
-    def validate(self, transformed_data):
-        self.ec.logger.info("No validation. skipping....")
-        return transformed_data
-
     def load(self, transformed):
         filename = self.nse_client.filename_for(self.ec.run_date)
         key = raw_bhavcopy_key(self.ec.run_date, filename)

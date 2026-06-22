@@ -18,10 +18,9 @@ class BaseJob(ABC):
         """Process the extracted data. Returns transformed data."""
         ...
 
-    @abstractmethod
     def validate(self, transformed_data):
         "Validate the transformed data. Returns only that are passed rest quarantined or fail loud"
-        ...
+        return transformed_data
 
     @abstractmethod
     def load(self, transformed) -> None:

@@ -17,10 +17,6 @@ class NseIndexIngestJob(BaseIngestJob):
         self.ec.logger.info("No transformation. skipping...")
         return raw
 
-    def validate(self, transformed_data):
-        self.ec.logger.info("No validation. skipping....")
-        return transformed_data
-
     def load(self, transformed):
         filename = filename_for_index(self.ec.run_date)
         key = raw_index_key(self.ec.run_date, filename)
