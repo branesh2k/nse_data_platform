@@ -11,6 +11,8 @@ venv/
 .venv/
 
 glossary.md
+sparkIssues.md
+
 .env
 scratch/
 airflow/logs

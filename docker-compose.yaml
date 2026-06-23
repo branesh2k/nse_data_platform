@@ -196,6 +196,7 @@ services:
       airflow-init:
         condition: service_completed_successfully
 
+
   airflow-triggerer:
     <<: *airflow-common
     command: triggerer
@@ -210,6 +211,23 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+
+  spark-history:
+    <<: *airflow-common
+    container_name: spark-history
+    command:
+      - bash
+      - -c
+      - |
+        export SPARK_HOME="$$(python -c 'import pyspark, os; print(os.path.dirname(pyspark.__file__))')"
+        exec "$$SPARK_HOME/bin/spark-class" org.apache.spark.deploy.history.HistoryServer
+    environment:
+      <<: *airflow-common-env
+      SPARK_HISTORY_OPTS: "-Dspark.history.fs.logDirectory=file:/opt/airflow/data/spark-events"
+    ports:
+      - "18080:18080"
+    restart: unless-stopped
+    depends_on: []
 
   airflow-init:
     <<: *airflow-common
