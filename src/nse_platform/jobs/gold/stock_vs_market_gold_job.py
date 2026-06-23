@@ -2,6 +2,7 @@
 
 from nse_platform.config.settings import settings
 from nse_platform.jobs.base.base_spark_job import BaseSparkJob
+from nse_platform.quality.checks import check_relative_return_nullness, check_unique_grain
 from nse_platform.utils.partitions import find_prev_silver_date
 from nse_platform.utils.path_builder import gold_path, silver_bhavcopy_path, silver_index_path
 from pyspark.sql import functions as F
@@ -67,10 +68,21 @@ class StockVsMarketGoldJob(BaseSparkJob):
         df_gold = df_equity.join(df_index, on="trade_date", how="left")
         df_gold = df_gold.withColumn("relative_return", F.col(
             "stock_return")-F.col("index_return"))
+
+        # # ---------------------------------------------------------------------
+        # # TEMP TEST
+        # df_gold = df_gold.withColumn(
+        #     "relative_return",
+        #     F.when(F.col("stock_return") > 0.05, F.lit(None).cast(
+        #         "double"))   # arbitrary deterministic slice
+        #     .otherwise(F.col("relative_return"))
+        # )
         return df_gold
 
     def validate(self, transformed_data):
-        ...
+        check_unique_grain(transformed_data, keys=[
+                           "symbol", "trade_date"], logger=self.ec.logger)
+        check_relative_return_nullness(transformed_data, logger=self.ec.logger)
         return transformed_data
 
     def load(self, transformed):

@@ -114,3 +114,20 @@ def check_ohlc_consistency_index(df, logger=None):
     bad_df = df.filter(F.size("dq_reasons") > 0)
     clean_df = df.filter(F.size("dq_reasons") == 0).drop("dq_reasons")
     return clean_df, bad_df
+
+
+def check_relative_return_nullness(df, logger=None):
+    """valid states: all null (None-branch) OR none null (normal run).
+    a partial mix means the index join matched some stocks but not others — a bug."""
+    total = df.count()
+    null_rr = df.filter(F.col("relative_return").isNull()).count()
+
+    if null_rr != 0 and null_rr != total:
+        raise ValueError(
+            f"[gold] relative_return null for {null_rr}/{total} rows — "
+            f"expected all-null (first day) or none-null (normal). "
+            f"Partial nulls indicate an inconsistent index join."
+        )
+    if logger:
+        logger.info(
+            f"[gold] relative_return consistency held ({null_rr}/{total} null)")
