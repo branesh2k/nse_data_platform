@@ -7,6 +7,7 @@ from airflow.sdk import dag, task
     start_date=datetime(2026, 5, 1),
     schedule="0 18 * * 1-5",
     catchup=False,
+    max_active_runs=1,
 )
 def stock_index_relative_dag():
 
