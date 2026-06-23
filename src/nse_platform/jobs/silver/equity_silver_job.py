@@ -116,4 +116,4 @@ class EquitySilverJob(BaseSparkJob):
         output_path = f"{settings.LOCAL_DATA_ROOT}/{silver_bhavcopy_path(self.ec.run_date)}"
         transformed.write.mode("overwrite").parquet(output_path)
         self.ec.logger.info(
-            f"Index silver data loaded as parquet in {output_path}")
+            f"Equity silver data loaded as parquet in {output_path}")
