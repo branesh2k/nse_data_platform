@@ -1,8 +1,8 @@
 
 from nse_platform.config.settings import settings
 from nse_platform.jobs.base.base_spark_job import BaseSparkJob
-from nse_platform.quality.checks import check_close_positive, check_ohlc_consistency, check_required_columns, check_timeliness, check_unique_grain
-from nse_platform.utils.path_builder import bronze_bhavcopy_path, quarantine_bhavcopy_path, silver_bhavcopy_path
+from nse_platform.quality.checks import check_close_positive, check_ohlc_consistency_equity, check_required_columns, check_timeliness, check_unique_grain
+from nse_platform.utils.path_builder import bronze_bhavcopy_path, quarantine_equity_path, silver_bhavcopy_path
 
 from pyspark.sql import Window
 from pyspark.sql import functions as F
@@ -95,7 +95,7 @@ class EquitySilverJob(BaseSparkJob):
 
         close_clean, close_bad = check_close_positive(
             transformed_data, logger=self.ec.logger)
-        ohlc_clean, ohlc_bad = check_ohlc_consistency(
+        ohlc_clean, ohlc_bad = check_ohlc_consistency_equity(
             close_clean, logger=self.ec.logger)
 
         check_unique_grain(ohlc_clean, keys=[
@@ -113,7 +113,7 @@ class EquitySilverJob(BaseSparkJob):
 
     def load(self, transformed):
 
-        output_path = f"{settings.LOCAL_DATA_ROOT}/{silver_bhavcopy_path(self.ec.run_date)}"
+        output_path = f"{settings.LOCAL_DATA_ROOT}/{quarantine_equity_path(self.ec.run_date)}"
         transformed.write.mode("overwrite").parquet(output_path)
         self.ec.logger.info(
             f"Index silver data loaded as parquet in {output_path}")
