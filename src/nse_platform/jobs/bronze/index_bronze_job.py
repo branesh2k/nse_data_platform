@@ -20,10 +20,6 @@ class IndexBronzeJob(BaseSparkJob):
         self.ec.logger.info("No transformation. skipping...")
         return raw
 
-    def validate(self, transformed_data):
-        self.ec.logger.info("No validation. skipping....")
-        return transformed_data
-
     def load(self, transformed):
         output_path = f"{settings.LOCAL_DATA_ROOT}/{bronze_index_path(self.ec.run_date)}"
         transformed.write.mode("overwrite").parquet(output_path)

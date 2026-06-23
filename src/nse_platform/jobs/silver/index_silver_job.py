@@ -38,7 +38,6 @@ class IndexSilverJob(BaseSparkJob):
                        "turnover_in_rs_cr", "pe", "pb", "div_yield"]
         df = df.withColumns({c: F.col(c).try_cast("double")
                             for c in double_cols})
-        df = df.na.drop(subset=["close"])
 
         w = Window.partitionBy("index_name", "trade_date") \
             .orderBy(F.col("close").desc())
