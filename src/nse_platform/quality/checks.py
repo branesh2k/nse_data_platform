@@ -29,7 +29,7 @@ def check_close_positive(df, logger=None):
     return clean_df, bad_df
 
 
-def check_ohlc_consistency(df, logger=None):
+def check_ohlc_consistency_equity(df, logger=None):
     """Consistency check: high is the ceiling, low the floor; open/close sit between.
     Any null OHLC value invalidates the bar. Returns (clean_df, bad_df)."""
 
@@ -91,3 +91,26 @@ def check_timeliness(df, expected_date, logger=None):
     if logger:
         logger.info(
             f"[timeliness] all rows dated {expected_date} — assertion held")
+
+
+def check_ohlc_consistency_index(df, logger=None):
+    """Consistency check (index): high >= low/open/close, low <= open/close.
+    Only fires when OHLC values are present — null OHLC (derived indices like
+    arbitrage/futures/dividend-points) is legitimate and passes clean.
+    Returns (clean_df, bad_df)."""
+
+    high_bad = ((F.col("high") < F.col("low"))
+                | (F.col("high") < F.col("close"))
+                | (F.col("high") < F.col("open"))
+                )
+    low_bad = ((F.col("open") < F.col("low")) |
+               (F.col("close") < F.col("low")))
+
+    dq_reasons = F.array_compact(F.array(
+        F.when(high_bad, F.lit("HIGH_INCONSISTENCY")),
+        F.when(low_bad,  F.lit("LOW_INCONSISTENCY")),
+    ),)
+    df = df.withColumn("dq_reasons", dq_reasons)
+    bad_df = df.filter(F.size("dq_reasons") > 0)
+    clean_df = df.filter(F.size("dq_reasons") == 0).drop("dq_reasons")
+    return clean_df, bad_df

@@ -57,5 +57,9 @@ def gold_path(d: date) -> str:
     return f"gold/nse/year={d.year}/month={d.month:02d}/day={d.day:02d}/"
 
 
-def quarantine_bhavcopy_path(d: date) -> str:
-    return f"quarantine/nse/year={d.year}/month={d.month:02d}/day={d.day:02d}/"
+def quarantine_equity_path(d: date) -> str:
+    return f"quarantine/nse/equity/year={d.year}/month={d.month:02d}/day={d.day:02d}/"
+
+
+def quarantine_silver_path(d: date) -> str:
+    return f"quarantine/nse/index/year={d.year}/month={d.month:02d}/day={d.day:02d}/"
