@@ -77,14 +77,14 @@ class EquitySilverJob(BaseSparkJob):
         df_cleaned = df_casted.withColumn(
             "rn", F.row_number().over(w)).filter(F.col("rn") == 1).drop("rn")
 # # --------------------------------------------------------------------------------------------------
-#         # Temp test
-#         self.ec.logger.debug("Manually injecting fake data for validation")
-#         df_cleaned = df_cleaned.withColumn(
-#             "close",
-#             F.when(F.col("symbol").isin("ALKYLAMINE",
-#                    "ASMS", "CUBEXTUB"), F.lit(-1.0))
-#             .otherwise(F.col("close"))
-#         )
+        # # Temp test
+        # self.ec.logger.debug("Manually injecting fake data for validation")
+        # df_cleaned = df_cleaned.withColumn(
+        #     "close",
+        #     F.when(F.col("symbol").isin("ALKYLAMINE",
+        #            "ASMS", "CUBEXTUB"), F.lit(-1.0))
+        #     .otherwise(F.col("close"))
+        # )
 
         return df_cleaned
 
@@ -105,7 +105,7 @@ class EquitySilverJob(BaseSparkJob):
         bad_count = quarantine.count()
         if bad_count > 0:
             self.ec.logger.info("Bad data found!!")
-            qpath = f"{settings.LOCAL_DATA_ROOT}/{quarantine_bhavcopy_path(self.ec.run_date)}"
+            qpath = f"{settings.LOCAL_DATA_ROOT}/{quarantine_equity_path(self.ec.run_date)}"
             quarantine.write.mode("overwrite").parquet(qpath)
             self.ec.logger.warning(
                 f"[dq] quarantined {bad_count} rows → {qpath}")
@@ -113,7 +113,7 @@ class EquitySilverJob(BaseSparkJob):
 
     def load(self, transformed):
 
-        output_path = f"{settings.LOCAL_DATA_ROOT}/{quarantine_equity_path(self.ec.run_date)}"
+        output_path = f"{settings.LOCAL_DATA_ROOT}/{silver_bhavcopy_path(self.ec.run_date)}"
         transformed.write.mode("overwrite").parquet(output_path)
         self.ec.logger.info(
             f"Index silver data loaded as parquet in {output_path}")
