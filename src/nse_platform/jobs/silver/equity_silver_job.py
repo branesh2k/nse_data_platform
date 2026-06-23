@@ -76,6 +76,15 @@ class EquitySilverJob(BaseSparkJob):
             .orderBy(F.col("total_traded_value").desc())
         df_cleaned = df_casted.withColumn(
             "rn", F.row_number().over(w)).filter(F.col("rn") == 1).drop("rn")
+# # --------------------------------------------------------------------------------------------------
+#         # Temp test
+#         self.ec.logger.debug("Manually injecting fake data for validation")
+#         df_cleaned = df_cleaned.withColumn(
+#             "close",
+#             F.when(F.col("symbol").isin("ALKYLAMINE",
+#                    "ASMS", "CUBEXTUB"), F.lit(-1.0))
+#             .otherwise(F.col("close"))
+#         )
 
         return df_cleaned
 
