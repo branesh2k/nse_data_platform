@@ -53,6 +53,7 @@ class ExecutionContext:
             .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
             .config("spark.eventLog.enabled", "true")
             .config("spark.eventLog.dir", "/opt/airflow/data/spark-events")
+            .config("spark.sql.ansi.enabled", "true")
         )
         spark = builder.getOrCreate()
         spark.sparkContext.setLogLevel("WARN")

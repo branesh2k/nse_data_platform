@@ -4,8 +4,8 @@ from nse_platform.storage.base_storage import BaseStorage
 
 
 class LocalStorage(BaseStorage):
-    def __init__(self, root: Path):
-        self.root = root
+    def __init__(self, root: str | Path):
+        self.root = Path(root)
 
     def put(self, key: str, data: bytes) -> None:
         full_path = self.root / key

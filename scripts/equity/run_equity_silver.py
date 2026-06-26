@@ -1,7 +1,7 @@
 import argparse
 
 from nse_platform.context.execution_context import ExecutionContext
-from nse_platform.storage.local_storage import LocalStorage
+from nse_platform.storage.factory import make_storage
 from nse_platform.jobs.silver.equity_silver_job import EquitySilverJob
 from nse_platform.config.settings import settings
 
@@ -14,7 +14,7 @@ def main():
 
     run_date = args.run_date
     ec = ExecutionContext.for_local_spark("nse_equity_silver", run_date)
-    storage = LocalStorage(settings.LOCAL_DATA_ROOT)
+    storage = make_storage()
     job = EquitySilverJob(ec, storage)
     job.run()
 

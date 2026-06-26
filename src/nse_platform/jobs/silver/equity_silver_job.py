@@ -14,7 +14,7 @@ class EquitySilverJob(BaseSparkJob):
 
     def extract(self):
         path = bronze_bhavcopy_path(self.ec.run_date)
-        bronze_path = f"{settings.LOCAL_DATA_ROOT}/{path}"
+        bronze_path = f"{settings.DATA_ROOT}/{path}"
         self.ec.logger.info(f"Reading Equity bronze data from {bronze_path}")
         return self.spark.read.parquet(bronze_path)
 
@@ -105,7 +105,7 @@ class EquitySilverJob(BaseSparkJob):
         bad_count = quarantine.count()
         if bad_count > 0:
             self.ec.logger.info("Bad data found!!")
-            qpath = f"{settings.LOCAL_DATA_ROOT}/{quarantine_equity_path(self.ec.run_date)}"
+            qpath = f"{settings.DATA_ROOT}/{quarantine_equity_path(self.ec.run_date)}"
             quarantine.write.mode("overwrite").parquet(qpath)
             self.ec.logger.warning(
                 f"[dq] quarantined {bad_count} rows → {qpath}")
@@ -113,7 +113,7 @@ class EquitySilverJob(BaseSparkJob):
 
     def load(self, transformed):
 
-        output_path = f"{settings.LOCAL_DATA_ROOT}/{silver_bhavcopy_path(self.ec.run_date)}"
+        output_path = f"{settings.DATA_ROOT}/{silver_bhavcopy_path(self.ec.run_date)}"
         transformed.write.mode("overwrite").parquet(output_path)
         self.ec.logger.info(
             f"Equity silver data loaded as parquet in {output_path}")

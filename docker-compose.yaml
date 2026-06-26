@@ -68,7 +68,7 @@ x-airflow-common:
     AIRFLOW__API_AUTH__JWT_ISSUER: ${AIRFLOW__API_AUTH__JWT_ISSUER:-airflow}
 
     PYTHONPATH: /opt/airflow/src
-    LOCAL_DATA_ROOT: /opt/airflow/data
+    DATA_ROOT: /opt/airflow/data
     # yamllint disable rule:line-length
     # Use simple http server on scheduler for health checks
     # See https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/check-health.html#scheduler-health-check-server

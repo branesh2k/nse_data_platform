@@ -32,7 +32,7 @@ class EquityBronzeJob(BaseSparkJob):
         return raw
 
     def load(self, transformed):
-        output_path = f"{settings.LOCAL_DATA_ROOT}/{bronze_bhavcopy_path(self.ec.run_date)}"
+        output_path = f"{settings.DATA_ROOT}/{bronze_bhavcopy_path(self.ec.run_date)}"
 
         try:
             transformed.write.mode("overwrite").parquet(output_path)

@@ -10,7 +10,7 @@ from pyspark.sql import Window
 class IndexSilverJob(BaseSparkJob):
 
     def extract(self):
-        path = f"{settings.LOCAL_DATA_ROOT}/{bronze_index_path(self.ec.run_date)}"
+        path = f"{settings.DATA_ROOT}/{bronze_index_path(self.ec.run_date)}"
         return self.spark.read.parquet(path)
 
     def transform(self, raw):
@@ -76,7 +76,7 @@ class IndexSilverJob(BaseSparkJob):
         bad_count = quarantine.count()
         if bad_count > 0:
             self.ec.logger.info("Bad data found!!")
-            qpath = f"{settings.LOCAL_DATA_ROOT}/{quarantine_silver_path(self.ec.run_date)}"
+            qpath = f"{settings.DATA_ROOT}/{quarantine_silver_path(self.ec.run_date)}"
             quarantine.write.mode("overwrite").parquet(qpath)
             self.ec.logger.warning(
                 f"[dq] quarantined {bad_count} rows → {qpath}")
@@ -84,7 +84,7 @@ class IndexSilverJob(BaseSparkJob):
         return ohlc_clean
 
     def load(self, transformed):
-        output_path = f"{settings.LOCAL_DATA_ROOT}/{silver_index_path(self.ec.run_date)}"
+        output_path = f"{settings.DATA_ROOT}/{silver_index_path(self.ec.run_date)}"
         transformed.write.mode("overwrite").parquet(output_path)
         self.ec.logger.info(
             f"Index silver data loaded as parquet in {output_path}")

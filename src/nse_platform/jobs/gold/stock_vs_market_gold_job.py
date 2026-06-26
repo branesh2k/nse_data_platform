@@ -11,11 +11,11 @@ from pyspark.sql import functions as F
 class StockVsMarketGoldJob(BaseSparkJob):
 
     def extract(self):
-        equity_path = f"{settings.LOCAL_DATA_ROOT}/{silver_bhavcopy_path(self.ec.run_date)}"
+        equity_path = f"{settings.DATA_ROOT}/{silver_bhavcopy_path(self.ec.run_date)}"
         self.ec.logger.info(f"Reading Equity silver data from {equity_path}")
         df_equity = self.spark.read.parquet(equity_path)
 
-        index_path = f"{settings.LOCAL_DATA_ROOT}/{silver_index_path(self.ec.run_date)}"
+        index_path = f"{settings.DATA_ROOT}/{silver_index_path(self.ec.run_date)}"
         self.ec.logger.info(
             f"Reading Index silver data from {index_path} and filtering to 'Nifty 50'")
         df_index = self.spark.read.parquet(index_path).filter(
@@ -24,7 +24,7 @@ class StockVsMarketGoldJob(BaseSparkJob):
         df_index_prev = None
         prev_date = find_prev_silver_date(self.ec.run_date, self.storage)
         if prev_date is not None:
-            prev_date_path = f"{settings.LOCAL_DATA_ROOT}/{silver_index_path(prev_date)}"
+            prev_date_path = f"{settings.DATA_ROOT}/{silver_index_path(prev_date)}"
             self.ec.logger.info(
                 f"Reading last run Index data from {prev_date_path} and filtering to 'Nifty 50")
             df_index_prev = self.spark.read.parquet(
@@ -86,7 +86,7 @@ class StockVsMarketGoldJob(BaseSparkJob):
         return transformed_data
 
     def load(self, transformed):
-        path = f"{settings.LOCAL_DATA_ROOT}/{gold_path(self.ec.run_date)}"
+        path = f"{settings.DATA_ROOT}/{gold_path(self.ec.run_date)}"
         self.ec.logger.info(f"Writing gold data to {path}")
         self.ec.logger.info("-----PIPELINE COMPLETED-----")
         transformed.write.format("delta").mode("overwrite").save(path)
