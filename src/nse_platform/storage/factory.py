@@ -4,6 +4,7 @@ from nse_platform.storage.base_storage import BaseStorage
 
 
 def make_storage() -> BaseStorage:
-    if settings.STORAGE_BACKEND == "local":
+    backend = settings.STORAGE_BACKEND
+    if backend == "local":
         return LocalStorage(settings.DATA_ROOT)
-    raise ValueError(f"unknown STORAGE_BACKEND: {settings.STORAGE_BACKEND}")
+    raise ValueError(f"unknown STORAGE_BACKEND: {backend}")
