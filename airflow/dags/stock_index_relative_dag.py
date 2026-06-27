@@ -17,8 +17,8 @@ def stock_index_relative_dag():
 
     @task.bash
     def equity_bronze():
-        # return "python /opt/airflow/scripts/equity/run_equity_bronze.py --run-date {{ ds }}"
-        return "echo JAVA_HOME=$JAVA_HOME && echo PATH=$PATH && python /opt/airflow/scripts/equity/run_equity_bronze.py --run-date {{ ds }}"
+        return "python /opt/airflow/scripts/equity/run_equity_bronze.py --run-date {{ ds }}"
+        # return "echo JAVA_HOME=$JAVA_HOME && echo PATH=$PATH && python /opt/airflow/scripts/equity/run_equity_bronze.py --run-date {{ ds }}"
 
     @task.bash
     def equity_silver():

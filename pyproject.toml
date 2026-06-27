@@ -8,6 +8,7 @@ dependencies = [
     "python-dotenv",
     "pyspark==4.1.2",
     "delta-spark==4.1.0",
+    "boto3",
 ]
 
 [project.optional-dependencies]
