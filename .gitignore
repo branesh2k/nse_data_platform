@@ -17,6 +17,7 @@ sparkIssues.md
 scratch/
 airflow/logs
 airflow/plugins
+airflow/config
 
 data/
 data/raw/*
