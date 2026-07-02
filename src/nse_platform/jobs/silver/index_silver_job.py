@@ -33,10 +33,10 @@ class IndexSilverJob(BaseSparkJob):
         )
 
         df = df.withColumn("trade_date", F.to_date("trade_date", "dd-MM-yyyy")) \
-            .withColumn("volume", F.col("volume").try_cast("long"))
+            .withColumn("volume", F.expr("try_cast(volume as long)"))
         double_cols = ["open", "high", "low", "close",
                        "turnover_in_rs_cr", "pe", "pb", "div_yield"]
-        df = df.withColumns({c: F.col(c).try_cast("double")
+        df = df.withColumns({c: F.expr(f"try_cast({c} as double)")
                             for c in double_cols})
 
         w = Window.partitionBy("index_name", "trade_date") \

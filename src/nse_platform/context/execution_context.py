@@ -1,3 +1,4 @@
+from __future__ import annotations
 import logging
 import uuid
 from datetime import datetime, date
@@ -5,7 +6,6 @@ from dataclasses import dataclass, field
 import sys
 import os
 
-from pyspark.sql import SparkSession
 
 from nse_platform.config.settings import settings
 from nse_platform.utils.dates import parse_run_date
@@ -15,7 +15,6 @@ from nse_platform.utils.logging import make_logger
 @dataclass
 class ExecutionContext:
     """Runtime info that every job receives."""
-
     job_name: str
     run_id: str
     run_date: date
@@ -43,6 +42,8 @@ class ExecutionContext:
     @classmethod
     def for_local_spark(cls, job_name: str, run_date: str, **args) -> "ExecutionContext":
         """Build a context With a local Spark session."""
+        from pyspark.sql import SparkSession
+
         os.environ["PYSPARK_PYTHON"] = sys.executable
         os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
         builder = (
@@ -56,6 +57,21 @@ class ExecutionContext:
             .config("spark.sql.ansi.enabled", "true")
         )
         spark = builder.getOrCreate()
+        spark.sparkContext.setLogLevel("WARN")
+        return cls(
+            job_name=job_name,
+            run_id=str(uuid.uuid4()),
+            run_date=parse_run_date(run_date),
+            env=settings.ENV,
+            logger=make_logger(f"nse_platform.{job_name}"),
+            started_at=datetime.now(),
+            spark=spark,
+            args=args,
+        )
+
+    @classmethod
+    def for_glue(cls, job_name: str, run_date: str, spark, **args) -> "ExecutionContext":
+        spark.conf.set("spark.sql.ansi.enabled", "true")
         spark.sparkContext.setLogLevel("WARN")
         return cls(
             job_name=job_name,
