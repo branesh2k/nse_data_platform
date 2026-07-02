@@ -2,7 +2,9 @@ venv/
 scratch/
 
 .git/
-.gitignore/
+.gitignore
+.env
+
 tests/
 glossary.md
 sparkIssues.md

@@ -1,0 +1,12 @@
+venv/
+scratch/
+build/
+.git/
+tests/
+airflow/logs/
+data/
+.env
+.env.example
+__pycache__/
+glossary.md
+sparkIssues.md

@@ -1,0 +1,6 @@
+FROM public.ecr.aws/lambda/python:3.12
+
+COPY dist/nse_platform-0.1.0-py3-none-any.whl .
+RUN pip install nse_platform-0.1.0-py3-none-any.whl -t "${LAMBDA_TASK_ROOT}"
+
+COPY lambda_entry/ "${LAMBDA_TASK_ROOT}/lambda_entry/"
