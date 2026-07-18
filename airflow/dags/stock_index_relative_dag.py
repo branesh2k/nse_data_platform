@@ -1,5 +1,12 @@
-from datetime import datetime
-from airflow.sdk import dag, task
+from datetime import datetime, timedelta
+
+from airflow.sdk import dag
+from airflow.providers.amazon.aws.operators.glue import GlueJobOperator
+from airflow.providers.amazon.aws.operators.lambda_function import (
+    LambdaInvokeFunctionOperator,
+)
+
+REGION = "us-east-1"
 
 
 @dag(
@@ -8,40 +15,61 @@ from airflow.sdk import dag, task
     schedule="0 18 * * 1-5",
     catchup=False,
     max_active_runs=1,
+    default_args={"retries": 3, "retry_delay": timedelta(seconds=30)},
 )
 def stock_index_relative_dag():
 
-    @task.bash
-    def equity_ingest():
-        return "python /opt/airflow/scripts/equity/run_nse_equity_ingest.py --run-date {{ ds }}"
+    equity_ingest = LambdaInvokeFunctionOperator(
+        task_id="equity_ingest",
+        function_name="nse-equity-ingest-Function",
+        payload='{"run_date": "{{ ds }}", "data_root": "s3://nse-platform", "storage_backend": "s3"}',
+        region_name=REGION,
+    )
 
-    @task.bash
-    def equity_bronze():
-        return "python /opt/airflow/scripts/equity/run_equity_bronze.py --run-date {{ ds }}"
-        # return "echo JAVA_HOME=$JAVA_HOME && echo PATH=$PATH && python /opt/airflow/scripts/equity/run_equity_bronze.py --run-date {{ ds }}"
+    equity_bronze = GlueJobOperator(
+        task_id="equity_bronze",
+        job_name="bronzeEquity",
+        script_args={"--run_date": "{{ ds }}"},
+        region_name=REGION,
+    )
 
-    @task.bash
-    def equity_silver():
-        return "python /opt/airflow/scripts/equity/run_equity_silver.py --run-date {{ ds }}"
+    equity_silver = GlueJobOperator(
+        task_id="equity_silver",
+        job_name="silverEquity",
+        script_args={"--run_date": "{{ ds }}"},
+        region_name=REGION,
+    )
 
-    @task.bash
-    def index_ingest():
-        return "python /opt/airflow/scripts/index/run_nse_index_ingest.py --run-date {{ ds }}"
+    index_ingest = LambdaInvokeFunctionOperator(
+        task_id="index_ingest",
+        function_name="nse-index-ingest-Function",
+        payload='{"run_date": "{{ ds }}", "data_root": "s3://nse-platform", "storage_backend": "s3"}',
+        region_name=REGION,
+    )
 
-    @task.bash
-    def index_bronze():
-        return "python /opt/airflow/scripts/index/run_index_bronze.py --run-date {{ ds }}"
+    index_bronze = GlueJobOperator(
+        task_id="index_bronze",
+        job_name="BronzeIndex",
+        script_args={"--run_date": "{{ ds }}"},
+        region_name=REGION,
+    )
 
-    @task.bash
-    def index_silver():
-        return "python /opt/airflow/scripts/index/run_index_silver.py --run-date {{ ds }}"
+    index_silver = GlueJobOperator(
+        task_id="index_silver",
+        job_name="silverIndex",
+        script_args={"--run_date": "{{ ds }}"},
+        region_name=REGION,
+    )
 
-    @task.bash
-    def gold():
-        return "python /opt/airflow/scripts/run_stock_vs_market_gold.py --run-date {{ ds }}"
+    gold = GlueJobOperator(
+        task_id="gold",
+        job_name="goldJob",
+        script_args={"--run_date": "{{ ds }}"},
+        region_name=REGION,
+    )
 
-    [equity_ingest() >> equity_bronze() >> equity_silver(),
-     index_ingest() >> index_bronze() >> index_silver()] >> gold()
+    [equity_ingest >> equity_bronze >> equity_silver,
+     index_ingest >> index_bronze >> index_silver] >> gold
 
 
 stock_index_relative_dag()
