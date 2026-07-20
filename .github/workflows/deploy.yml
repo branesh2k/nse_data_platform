@@ -1,0 +1,67 @@
+name: Deploy NSE Platform Artifacts
+
+# TRIGGER: run only when code lands on main
+on:
+  push:
+    branches: [main]
+
+# PERMISSIONS: required for OIDC — the runner needs to request a token
+permissions:
+  id-token: write      # lets the runner fetch the GitHub OIDC token
+  contents: read       # lets the runner check out your repo
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest        # the fresh throwaway machine
+
+    env:
+      AWS_REGION: us-east-1
+      ECR_REPOSITORY: nse-ingest
+      S3_BUCKET: nse-platform
+      S3_ARTIFACT_PREFIX: artifacts
+
+    steps:
+      # 1. Pull your repo onto the empty runner
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Install Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # 3. Build the wheel (same command you run by hand)
+      - name: Build wheel
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build --wheel
+
+      # 4. Assume the AWS role via OIDC (the handshake — no stored keys)
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::978942695091:role/nse-github-actions-deploy
+          aws-region: ${{ env.AWS_REGION }}
+
+      # 5. Upload the wheel to s3://nse-platform/artifacts/
+      - name: Upload wheel to S3
+        run: |
+          aws s3 cp dist/*.whl s3://${{ env.S3_BUCKET }}/${{ env.S3_ARTIFACT_PREFIX }}/
+
+      # 6. Log in to ECR
+      - name: Log in to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # 7. Build the Lambda image (single-manifest) and push to ECR
+      - name: Build and push Lambda image
+        env:
+          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+        run: |
+          docker build \
+            --provenance=false \
+            -f Dockerfile.lambda \
+            -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest \
+            .
+          docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest
