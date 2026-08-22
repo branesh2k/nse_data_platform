@@ -374,7 +374,7 @@ resource "aws_iam_role_policy" "nse_actions_publish_artifacts" {
       {
         Sid      = "UpdateGlueJobs"
         Effect   = "Allow"
-        Action   = "glue:UpdateJob"
+        Action   = ["glue:GetJob", "glue:UpdateJob"]
         Resource = "arn:aws:glue:us-east-1:978942695091:job/*"
       },
       
