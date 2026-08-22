@@ -371,6 +371,17 @@ resource "aws_iam_role_policy" "nse_actions_publish_artifacts" {
           }
         }
       },
+            {
+        Sid      = "PassGlueRoleForJobUpdate"
+        Effect   = "Allow"
+        Action   = "iam:PassRole"
+        Resource = "arn:aws:iam::978942695091:role/nse-glue-job-role"
+        Condition = {
+          StringEquals = {
+            "iam:PassedToService" = "glue.amazonaws.com"
+          }
+        }
+      },
       {
         Sid      = "UpdateGlueJobs"
         Effect   = "Allow"
