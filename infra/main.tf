@@ -354,7 +354,7 @@ resource "aws_iam_role_policy" "nse_actions_publish_artifacts" {
             {
         Sid      = "CreateLambdaFunctions"
         Effect   = "Allow"
-        Action   = "lambda:CreateFunction"
+        Action   = ["lambda:GetFunction", "lambda:CreateFunction"]
         Resource = [
           "arn:aws:lambda:us-east-1:978942695091:function:nse-equity-ingest-Function",
           "arn:aws:lambda:us-east-1:978942695091:function:nse-index-ingest-Function"
