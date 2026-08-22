@@ -397,6 +397,27 @@ resource "aws_ecr_repository" "nse_ingest" {
   }
 }
 
+resource "aws_ecr_repository_policy" "nse_ingest_lambda_access" {
+  repository = aws_ecr_repository.nse_ingest.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "AllowLambdaPull"
+        Effect    = "Allow"
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+        Action = [
+          "ecr:BatchGetImage",
+          "ecr:GetDownloadUrlForLayer"
+        ]
+      }
+    ]
+  })
+}
+
 #GLUE
 resource "aws_glue_job" "bronze_equity" {
   name     = "bronzeEquity"
