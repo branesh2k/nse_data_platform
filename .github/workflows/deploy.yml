@@ -108,12 +108,12 @@ jobs:
             fi
           done
 
-      # 9. Point every Glue job at the wheel thats just built
+      # 9. Point every Glue job at the wheel we just built
       - name: Update Glue jobs to new wheel
         run: |
           for job in bronzeEquity BronzeIndex silverEquity silverIndex goldJob; do
-            aws glue get-job --job-name "$job" --query "Job.DefaultArguments" --output json > /tmp/args.json
+            aws glue get-job --job-name "$job" --query "Job.{Command:Command,DefaultArguments:DefaultArguments}" --output json > /tmp/current.json
             jq --arg wheel "s3://${{ env.S3_BUCKET }}/${{ env.S3_ARTIFACT_PREFIX }}/${{ env.WHEEL_FILE }}" \
-              '.["--additional-python-modules"] = $wheel' /tmp/args.json > /tmp/new-args.json
-            aws glue update-job --job-name "$job" --job-update "{\"DefaultArguments\": $(cat /tmp/new-args.json)}"
+              '.DefaultArguments["--additional-python-modules"] = $wheel' /tmp/current.json > /tmp/updated.json
+            aws glue update-job --job-name "$job" --job-update "$(cat /tmp/updated.json)"
           done
