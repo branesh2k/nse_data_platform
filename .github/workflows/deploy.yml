@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   build-and-publish:
-    runs-on: ubuntu-latest        # the fresh throwaway machine
+    runs-on: ubuntu-latest 
 
     env:
       AWS_REGION: us-east-1
@@ -21,7 +21,7 @@ jobs:
       S3_ARTIFACT_PREFIX: artifacts
 
     steps:
-      # 1. Pull your repo onto the empty runner
+      # 1. Pull repo onto the empty runner
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -31,30 +31,41 @@ jobs:
         with:
           python-version: "3.12"
 
-      # 3. Build the wheel (same command you run by hand)
+      # 3. Build the wheel, capture its filename
       - name: Build wheel
         run: |
           python -m pip install --upgrade pip build
           python -m build --wheel
+          echo "WHEEL_FILE=$(basename dist/*.whl)" >> $GITHUB_ENV
 
-      # 4. Assume the AWS role via OIDC (the handshake — no stored keys)
+      # 4. Assume the AWS role via OIDC
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::978942695091:role/nse-github-actions-deploy
           aws-region: ${{ env.AWS_REGION }}
 
-      # 5. Upload the wheel to s3://nse-platform/artifacts/
+      # 5. Upload the wheel to s3
       - name: Upload wheel to S3
         run: |
           aws s3 cp dist/*.whl s3://${{ env.S3_BUCKET }}/${{ env.S3_ARTIFACT_PREFIX }}/
+      
+      # 5b. Sync Glue entry scripts to S3
+      - name: Upload Glue scripts to S3
+        run: |
+          aws s3 cp glue_entry/ s3://${{ env.S3_BUCKET }}/${{ env.S3_ARTIFACT_PREFIX }}/glue_entry/ --recursive
+
+      # 5c. Sync DAG files to S3
+      - name: Upload DAGs to S3
+        run: |
+          aws s3 cp airflow/dags/ s3://${{ env.S3_BUCKET }}/dags/ --recursive
 
       # 6. Log in to ECR
       - name: Log in to Amazon ECR
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v2
 
-      # 7. Build the Lambda image (single-manifest) and push to ECR
+      # 7. Build the Lambda image, push, capture its digest
       - name: Build and push Lambda image
         env:
           ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
@@ -65,3 +76,25 @@ jobs:
             -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest \
             .
           docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest)
+          echo "IMAGE_URI=$DIGEST" >> $GITHUB_ENV
+
+      # 8. Point both Lambda functions at the image that just built
+      - name: Update Lambda functions to new image
+        run: |
+          aws lambda update-function-code \
+            --function-name nse-equity-ingest-Function \
+            --image-uri ${{ env.IMAGE_URI }}
+          aws lambda update-function-code \
+            --function-name nse-index-ingest-Function \
+            --image-uri ${{ env.IMAGE_URI }}
+
+      # 9. Point every Glue job at the wheel thats just built
+      - name: Update Glue jobs to new wheel
+        run: |
+          for job in bronzeEquity BronzeIndex silverEquity silverIndex goldJob; do
+            aws glue get-job --job-name "$job" --query "Job.DefaultArguments" --output json > /tmp/args.json
+            jq --arg wheel "s3://${{ env.S3_BUCKET }}/${{ env.S3_ARTIFACT_PREFIX }}/${{ env.WHEEL_FILE }}" \
+              '.["--additional-python-modules"] = $wheel' /tmp/args.json > /tmp/new-args.json
+            aws glue update-job --job-name "$job" --job-update "{\"DefaultArguments\": $(cat /tmp/new-args.json)}"
+          done
