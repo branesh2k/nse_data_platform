@@ -108,6 +108,11 @@ resource "aws_iam_role_policy_attachment" "ingest_s3_object_lambda" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonS3ObjectLambdaExecutionRolePolicy"
 }
 
+resource "aws_iam_role_policy_attachment" "ingest_lambda_basic_execution" {
+  role       = aws_iam_role.nse_ingest_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
 
 # MWAA
 resource "aws_iam_role" "mwaa_nse_environment_role" {
@@ -346,61 +351,37 @@ resource "aws_iam_role_policy" "nse_actions_publish_artifacts" {
           "arn:aws:lambda:us-east-1:978942695091:function:nse-index-ingest-Function"
         ]
       },
+            {
+        Sid      = "CreateLambdaFunctions"
+        Effect   = "Allow"
+        Action   = "lambda:CreateFunction"
+        Resource = [
+          "arn:aws:lambda:us-east-1:978942695091:function:nse-equity-ingest-Function",
+          "arn:aws:lambda:us-east-1:978942695091:function:nse-index-ingest-Function"
+        ]
+      },
+      {
+        Sid      = "PassIngestRoleToLambda"
+        Effect   = "Allow"
+        Action   = "iam:PassRole"
+        Resource = "arn:aws:iam::978942695091:role/nse-ingest-role"
+        Condition = {
+          StringEquals = {
+            "iam:PassedToService" = "lambda.amazonaws.com"
+          }
+        }
+      },
       {
         Sid      = "UpdateGlueJobs"
         Effect   = "Allow"
         Action   = "glue:UpdateJob"
         Resource = "arn:aws:glue:us-east-1:978942695091:job/*"
-      }
+      },
+      
     ]
   })
 }
 
-# LAMBDA
-resource "aws_lambda_function" "nse_equity_ingest" {
-  function_name = "nse-equity-ingest-Function"
-  role          = aws_iam_role.nse_ingest_role.arn
-  package_type  = "Image"
-  image_uri     = "public.ecr.aws/lambda/python:3.12"
-  timeout     = 120
-  memory_size = 256
-
-  architectures = ["x86_64"]
-
-  image_config {
-    command = ["lambda_entry.equity_ingest_handler.handler"]
-  }
-
-  ephemeral_storage {
-    size = 512
-  }
-  lifecycle {
-    ignore_changes = [image_uri]
-  }
-}
-
-resource "aws_lambda_function" "nse_index_ingest" {
-  function_name = "nse-index-ingest-Function"
-  role          = aws_iam_role.nse_ingest_role.arn
-  package_type  = "Image"
-  image_uri     = "public.ecr.aws/lambda/python:3.12"
-
-  timeout     = 120
-  memory_size = 256
-
-  architectures = ["x86_64"]
-
-  image_config {
-    command = ["lambda_entry.index_ingest_handler.handler"]
-  }
-
-  ephemeral_storage {
-    size = 512
-  }
-  lifecycle {
-    ignore_changes = [image_uri]
-  }
-}
 
 #ECR
 resource "aws_ecr_repository" "nse_ingest" {
@@ -637,6 +618,7 @@ resource "aws_glue_job" "gold_job" {
   execution_class   = "STANDARD"
 }
 
+/*
 # =========================================================
 # MWAA NETWORKING
 # =========================================================
@@ -867,4 +849,4 @@ resource "aws_mwaa_environment" "nse_airflow" {
       log_level = "INFO"
     }
   }
-}
+}*/
