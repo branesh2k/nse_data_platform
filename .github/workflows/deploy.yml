@@ -79,15 +79,34 @@ jobs:
           DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest)
           echo "IMAGE_URI=$DIGEST" >> $GITHUB_ENV
 
-      # 8. Point both Lambda functions at the image that just built
-      - name: Update Lambda functions to new image
+      # 8. Create Lambda functions if they don't exist yet, otherwise update their image
+      - name: Deploy Lambda functions
         run: |
-          aws lambda update-function-code \
-            --function-name nse-equity-ingest-Function \
-            --image-uri ${{ env.IMAGE_URI }}
-          aws lambda update-function-code \
-            --function-name nse-index-ingest-Function \
-            --image-uri ${{ env.IMAGE_URI }}
+          for FN in nse-equity-ingest-Function nse-index-ingest-Function; do
+            if aws lambda get-function --function-name "$FN" >/dev/null 2>&1; then
+              echo "Function $FN exists — updating image"
+              aws lambda update-function-code \
+                --function-name "$FN" \
+                --image-uri ${{ env.IMAGE_URI }}
+            else
+              echo "Function $FN does not exist — creating"
+              if [ "$FN" = "nse-equity-ingest-Function" ]; then
+                HANDLER="lambda_entry.equity_ingest_handler.handler"
+              else
+                HANDLER="lambda_entry.index_ingest_handler.handler"
+              fi
+              aws lambda create-function \
+                --function-name "$FN" \
+                --package-type Image \
+                --code ImageUri=${{ env.IMAGE_URI }} \
+                --role arn:aws:iam::978942695091:role/nse-ingest-role \
+                --timeout 120 \
+                --memory-size 256 \
+                --architectures x86_64 \
+                --image-config "Command=$HANDLER" \
+                --ephemeral-storage "Size=512"
+            fi
+          done
 
       # 9. Point every Glue job at the wheel thats just built
       - name: Update Glue jobs to new wheel
