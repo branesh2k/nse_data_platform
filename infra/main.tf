@@ -12,6 +12,22 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "nse_platform" {
     }
   }
 }
+resource "aws_s3_bucket_lifecycle_configuration" "nse_platform" {
+  bucket = aws_s3_bucket.nse_platform.id
+
+  rule {
+    id     = "expire-old-wheels"
+    status = "Enabled"
+
+    filter {
+      prefix = "artifacts/"
+    }
+
+    expiration {
+      days = 30
+    }
+  }
+}
 
 
 # IAM - for glue
@@ -429,6 +445,28 @@ resource "aws_ecr_repository_policy" "nse_ingest_lambda_access" {
   })
 }
 
+resource "aws_ecr_lifecycle_policy" "nse_ingest" {
+  repository = aws_ecr_repository.nse_ingest.name
+
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Expire untagged images after 7 days"
+        selection = {
+          tagStatus   = "untagged"
+          countType   = "sinceImagePushed"
+          countUnit   = "days"
+          countNumber = 7
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
+}
+
 #GLUE
 resource "aws_glue_job" "bronze_equity" {
   name     = "bronzeEquity"
@@ -650,7 +688,7 @@ resource "aws_glue_job" "gold_job" {
   execution_class   = "STANDARD"
 }
 
-/*
+
 # =========================================================
 # MWAA NETWORKING
 # =========================================================
@@ -881,4 +919,4 @@ resource "aws_mwaa_environment" "nse_airflow" {
       log_level = "INFO"
     }
   }
-}*/
+}
