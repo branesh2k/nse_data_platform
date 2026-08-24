@@ -31,6 +31,7 @@ def stock_index_relative_dag():
         job_name="bronzeEquity",
         script_args={"--run_date": "{{ ds }}"},
         region_name=REGION,
+        verbose=True,
     )
 
     equity_silver = GlueJobOperator(
@@ -38,6 +39,7 @@ def stock_index_relative_dag():
         job_name="silverEquity",
         script_args={"--run_date": "{{ ds }}"},
         region_name=REGION,
+        verbose=True,
     )
 
     index_ingest = LambdaInvokeFunctionOperator(
@@ -52,6 +54,7 @@ def stock_index_relative_dag():
         job_name="BronzeIndex",
         script_args={"--run_date": "{{ ds }}"},
         region_name=REGION,
+        verbose=True,
     )
 
     index_silver = GlueJobOperator(
@@ -59,6 +62,7 @@ def stock_index_relative_dag():
         job_name="silverIndex",
         script_args={"--run_date": "{{ ds }}"},
         region_name=REGION,
+        verbose=True,
     )
 
     gold = GlueJobOperator(
@@ -66,6 +70,7 @@ def stock_index_relative_dag():
         job_name="goldJob",
         script_args={"--run_date": "{{ ds }}"},
         region_name=REGION,
+        verbose=True,
     )
 
     [equity_ingest >> equity_bronze >> equity_silver,
