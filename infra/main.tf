@@ -283,6 +283,19 @@ resource "aws_iam_policy" "mwaa_execution_policy" {
             "kms:ViaService" = ["sqs.us-east-1.amazonaws.com"]
           }
         }
+      },
+      {
+        Sid    = "ReadGlueJobLogs"
+        Effect = "Allow"
+        Action = [
+          "logs:GetLogEvents",
+          "logs:DescribeLogStreams"
+        ]
+        Resource = [
+          "arn:aws:logs:us-east-1:978942695091:log-group:/aws-glue/jobs/output:*",
+          "arn:aws:logs:us-east-1:978942695091:log-group:/aws-glue/jobs/error:*",
+          "arn:aws:logs:us-east-1:978942695091:log-group:/aws-glue/jobs/logs-v2:*"
+        ]
       }
     ]
   })
