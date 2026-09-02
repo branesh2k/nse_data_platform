@@ -1,7 +1,7 @@
 
 from nse_platform.config.settings import settings
 from nse_platform.jobs.base.base_spark_job import BaseSparkJob
-from nse_platform.quality.checks import check_close_positive, check_ohlc_consistency_equity, check_required_columns, check_timeliness, check_unique_grain
+from nse_platform.quality.checks import check_required_columns, load_contract, run_contract_checks
 from nse_platform.utils.path_builder import bronze_bhavcopy_path, quarantine_equity_path, silver_bhavcopy_path
 
 from pyspark.sql import Window
@@ -76,40 +76,25 @@ class EquitySilverJob(BaseSparkJob):
             .orderBy(F.col("total_traded_value").desc())
         df_cleaned = df_casted.withColumn(
             "rn", F.row_number().over(w)).filter(F.col("rn") == 1).drop("rn")
-# # --------------------------------------------------------------------------------------------------
-        # # Temp test
-        # self.ec.logger.debug("Manually injecting fake data for validation")
-        # df_cleaned = df_cleaned.withColumn(
-        #     "close",
-        #     F.when(F.col("symbol").isin("ALKYLAMINE",
-        #            "ASMS", "CUBEXTUB"), F.lit(-1.0))
-        #     .otherwise(F.col("close"))
-        # )
 
         return df_cleaned
 
     def validate(self, transformed_data):
+        contract = load_contract(
+            f"{settings.CONTRACTS_ROOT}/silver_equity.yaml")
+        clean, quarantine = run_contract_checks(
+            transformed_data, contract, run_date=self.ec.run_date, logger=self.ec.logger
+        )
 
-        check_timeliness(transformed_data, self.ec.run_date,
-                         logger=self.ec.logger)
-
-        close_clean, close_bad = check_close_positive(
-            transformed_data, logger=self.ec.logger)
-        ohlc_clean, ohlc_bad = check_ohlc_consistency_equity(
-            close_clean, logger=self.ec.logger)
-
-        check_unique_grain(ohlc_clean, keys=[
-                           "symbol", "trade_date"], logger=self.ec.logger)
-
-        quarantine = close_bad.unionByName(ohlc_bad)
-        bad_count = quarantine.count()
-        if bad_count > 0:
-            self.ec.logger.info("Bad data found!!")
-            qpath = f"{settings.DATA_ROOT}/{quarantine_equity_path(self.ec.run_date)}"
-            quarantine.write.mode("overwrite").parquet(qpath)
-            self.ec.logger.warning(
-                f"[dq] quarantined {bad_count} rows → {qpath}")
-        return ohlc_clean
+        if quarantine is not None:
+            bad_count = quarantine.count()
+            if bad_count > 0:
+                self.ec.logger.info("Bad data found!!")
+                qpath = f"{settings.DATA_ROOT}/{quarantine_equity_path(self.ec.run_date)}"
+                quarantine.write.mode("overwrite").parquet(qpath)
+                self.ec.logger.warning(
+                    f"[dq] quarantined {bad_count} rows → {qpath}")
+        return clean
 
     def load(self, transformed):
 

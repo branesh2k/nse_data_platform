@@ -581,6 +581,7 @@ resource "aws_glue_job" "silver_equity" {
 
   default_arguments = {
     "--data_root"                       = "s3://nse-platform"
+    "--contracts_root"                   = "s3://nse-platform/contracts"
     "--enable-glue-datacatalog"         = "true"
     "--job-bookmark-option"             = "job-bookmark-disable"
     "--datalake-formats"                = "delta"
@@ -625,6 +626,7 @@ resource "aws_glue_job" "silver_index" {
 
   default_arguments = {
     "--data_root"                       = "s3://nse-platform"
+    "--contracts_root"                   = "s3://nse-platform/contracts"
     "--enable-glue-datacatalog"         = "true"
     "--job-bookmark-option"             = "job-bookmark-disable"
     "--datalake-formats"                = "delta"

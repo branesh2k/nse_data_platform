@@ -60,6 +60,21 @@ jobs:
         run: |
           aws s3 cp airflow/dags/ s3://${{ env.S3_BUCKET }}/dags/ --recursive
 
+      # 5d. Sync data contracts to S3
+      - name: Upload contracts to S3
+        run: |
+          aws s3 cp contracts/ s3://${{ env.S3_BUCKET }}/contracts/ --recursive
+
+      # 5e. Sync data product docs to S3
+      - name: Upload data products to S3
+        run: |
+          aws s3 cp data_products/ s3://${{ env.S3_BUCKET }}/data_products/ --recursive
+
+      # 5f. Sync metadata catalog to S3
+      - name: Upload metadata to S3
+        run: |
+          aws s3 cp metadata/ s3://${{ env.S3_BUCKET }}/metadata/ --recursive
+
       # 6. Log in to ECR
       - name: Log in to Amazon ECR
         id: ecr-login

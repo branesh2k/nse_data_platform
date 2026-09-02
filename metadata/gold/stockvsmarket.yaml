@@ -1,0 +1,69 @@
+table: stock_vs_market
+layer: gold
+owner: branesh
+description: >
+  Daily relative performance of each NSE-listed stock against the Nifty 50 index.
+  Built as part of the NSE Platform, a project replicating a production medallion lakehouse pipeline for NSE India daily bhavcopy
+  (equity + index) data. Answers: "did this stock outperform or underperform the market today?"
+grain:
+  - symbol
+  - trade_date
+source_tables:
+  - silver.equity      # same trade_date as run_date
+  - silver.index        # filtered to index_name == "Nifty 50"; both current and prior available trade_date are read
+update_cadence: daily
+update_trigger: "Airflow DAG stock_index_relative_dag, run_date = {{ ds }}"
+join_logic: >
+  Equity silver left-joined to (Nifty 50-filtered) index silver on trade_date
+  only — every stock on a date shares the same index row, by design.
+  index_return uses the prior available silver index date, resolved via
+  find_prev_silver_date (calendar-truth backward search, not run_date - 1).
+columns:
+  # --- from equity silver, unchanged ---
+  - {name: symbol, type: string, description: NSE trading symbol, nullable: false}
+  - {name: series, type: string, description: "Market series, e.g. EQ, BE"}
+  - {name: trade_date, type: date, description: Join key across equity and index, nullable: false}
+  - {name: total_traded_qty, type: long}
+  - {name: total_traded_value, type: double}
+  - {name: total_trades, type: long}
+  - {name: isin, type: string}
+  # --- from equity silver, renamed + derived ---
+  - {name: stock_open, type: double}
+  - {name: stock_high, type: double}
+  - {name: stock_low, type: double}
+  - {name: stock_close, type: double}
+  - {name: stock_last, type: double}
+  - {name: stock_prev_close, type: double}
+  - name: stock_return
+    type: double
+    description: (stock_close - stock_prev_close) / stock_prev_close
+    nullable: true
+  # --- from index silver (Nifty 50 only), unchanged ---
+  - {name: index_name, type: string, description: Always "Nifty 50" in this table}
+  - {name: volume, type: long}
+  - {name: turnover_in_rs_cr, type: double}
+  - {name: pe, type: double}
+  - {name: pb, type: double}
+  - {name: div_yield, type: double}
+  # --- from index silver, renamed + derived ---
+  - {name: index_open, type: double}
+  - {name: index_high, type: double}
+  - {name: index_low, type: double}
+  - {name: index_close, type: double}
+  - name: index_prev_close
+    type: double
+    description: Nifty 50 close from the prior available silver index date.
+    nullable: true
+  - name: index_return
+    type: double
+    description: (index_close - index_prev_close) / index_prev_close
+    nullable: true
+    notes: Null on the first trading day in pipeline history (no prior-day index file).
+  # --- gold-derived metric ---
+  - name: relative_return
+    type: double
+    description: stock_return - index_return. Core metric of this table.
+    nullable: true
+    notes: >
+      All-null across the whole table on the first-day/no-prior-data branch,
+      never a partial mix — enforced by check_relative_return_nullness gate.

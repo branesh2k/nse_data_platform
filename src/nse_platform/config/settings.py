@@ -13,6 +13,7 @@ class Settings:
     STORAGE_BACKEND: str = os.getenv("STORAGE_BACKEND", "local")
 
     DATA_ROOT: str = os.getenv("DATA_ROOT", "./data")
+    CONTRACTS_ROOT: str = os.getenv("CONTRACTS_ROOT", "./contracts")
     S3_BUCKET: str = os.getenv("S3_BUCKET", "nse-platform")
 
     ENV: str = os.getenv("ENV", "local")

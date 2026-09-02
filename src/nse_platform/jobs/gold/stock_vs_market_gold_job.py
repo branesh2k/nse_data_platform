@@ -3,6 +3,7 @@
 from nse_platform.config.settings import settings
 from nse_platform.jobs.base.base_spark_job import BaseSparkJob
 from nse_platform.quality.checks import check_relative_return_nullness, check_unique_grain
+from nse_platform.utils.operational_metadata import log_lineage, log_run
 from nse_platform.utils.partitions import find_prev_silver_date
 from nse_platform.utils.path_builder import gold_path, silver_bhavcopy_path, silver_index_path
 from pyspark.sql import functions as F
@@ -29,6 +30,10 @@ class StockVsMarketGoldJob(BaseSparkJob):
                 f"Reading last run Index data from {prev_date_path} and filtering to 'Nifty 50")
             df_index_prev = self.spark.read.parquet(
                 prev_date_path).filter(F.col("index_name") == "Nifty 50")
+
+        self._source_paths = [equity_path, index_path]
+        if df_index_prev is not None:
+            self._source_paths.append(prev_date_path)
 
         return (df_equity, df_index, df_index_prev)
 
@@ -69,14 +74,6 @@ class StockVsMarketGoldJob(BaseSparkJob):
         df_gold = df_gold.withColumn("relative_return", F.col(
             "stock_return")-F.col("index_return"))
 
-        # # ---------------------------------------------------------------------
-        # # TEMP TEST
-        # df_gold = df_gold.withColumn(
-        #     "relative_return",
-        #     F.when(F.col("stock_return") > 0.05, F.lit(None).cast(
-        #         "double"))   # arbitrary deterministic slice
-        #     .otherwise(F.col("relative_return"))
-        # )
         return df_gold
 
     def validate(self, transformed_data):
@@ -90,3 +87,9 @@ class StockVsMarketGoldJob(BaseSparkJob):
         self.ec.logger.info(f"Writing gold data to {path}")
         self.ec.logger.info("-----PIPELINE COMPLETED-----")
         transformed.write.format("delta").mode("overwrite").save(path)
+        log_run(self.spark, settings.DATA_ROOT, "stock_vs_market",
+                self.ec.run_date, transformed.count())
+        log_lineage(self.spark, settings.DATA_ROOT, "stock_vs_market",
+                    self.ec.run_date, self._source_paths, path)
+        self.ec.logger.info(
+            "----------------------METADATA UPDATED----------------------")

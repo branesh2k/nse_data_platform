@@ -1,0 +1,14 @@
+table: index
+layer: silver
+owner: branesh
+grain:
+  - index_name
+  - trade_date
+checks:
+  - type: timeliness
+  - type: positive
+    column: close
+    reason_code: CLOSE_NON_POSITIVE
+  - type: ohlc_consistency
+    treat_null_as_bad: false
+  - type: unique_grain
