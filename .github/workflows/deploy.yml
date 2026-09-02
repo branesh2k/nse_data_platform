@@ -129,7 +129,7 @@ jobs:
           for job in bronzeEquity BronzeIndex silverEquity silverIndex goldJob; do
             aws glue get-job --job-name "$job" --query "Job" --output json > /tmp/full.json
             jq --arg wheel "s3://${{ env.S3_BUCKET }}/${{ env.S3_ARTIFACT_PREFIX }}/${{ env.WHEEL_FILE }}" '
-              .DefaultArguments["--additional-python-modules"] = $wheel
+              .DefaultArguments["--additional-python-modules"] = ($wheel + ",pyyaml")
               | del(.Name, .CreatedOn, .LastModifiedOn, .AllocatedCapacity, .JobMode, .JobRunQueuingEnabled, .MaxCapacity)
             ' /tmp/full.json > /tmp/updated.json
             aws glue update-job --job-name "$job" --job-update "$(cat /tmp/updated.json)"

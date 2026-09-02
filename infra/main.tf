@@ -289,7 +289,8 @@ resource "aws_iam_policy" "mwaa_execution_policy" {
         Effect = "Allow"
         Action = [
           "logs:GetLogEvents",
-          "logs:DescribeLogStreams"
+          "logs:DescribeLogStreams",
+          "logs:FilterLogEvents"
         ]
         Resource = [
           "arn:aws:logs:us-east-1:978942695091:log-group:/aws-glue/jobs/output:*",
