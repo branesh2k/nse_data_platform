@@ -353,6 +353,24 @@ resource "aws_iam_role_policy" "nse_actions_publish_artifacts" {
         Action   = "s3:PutObject"
         Resource = "arn:aws:s3:::nse-platform/dags/*"
       },
+            {
+        Sid      = "PublishContractsToS3"
+        Effect   = "Allow"
+        Action   = "s3:PutObject"
+        Resource = "arn:aws:s3:::nse-platform/contracts/*"
+      },
+      {
+        Sid      = "PublishMetadataToS3"
+        Effect   = "Allow"
+        Action   = "s3:PutObject"
+        Resource = "arn:aws:s3:::nse-platform/metadata/*"
+      },
+      {
+        Sid      = "PublishDataProductsToS3"
+        Effect   = "Allow"
+        Action   = "s3:PutObject"
+        Resource = "arn:aws:s3:::nse-platform/data_products/*"
+      },
       {
         Sid      = "ECRLoginTokenAccountWide"
         Effect   = "Allow"

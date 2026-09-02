@@ -3,6 +3,7 @@ terraform {
     bucket = "nse-platform"
     key    = "terraform/state.tfstate"
     region = "us-east-1"
+    use_lockfile = true
   }
 
   required_providers {
