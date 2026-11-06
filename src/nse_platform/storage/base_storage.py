@@ -18,3 +18,8 @@ class BaseStorage(ABC):
     def exists(self, key: str) -> bool:
         """Return True if key has a value stored."""
         ...
+
+    @abstractmethod
+    def prefix_exists(self, prefix: str) -> bool:
+        """Return True if at least one object exists under the prefix"""
+        ...

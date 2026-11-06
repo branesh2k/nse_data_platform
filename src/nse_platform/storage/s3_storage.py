@@ -29,3 +29,9 @@ class S3Storage(BaseStorage):
             if e.response["Error"]["Code"] in ("404", "NoSuchKey"):
                 return False
             raise
+
+    def prefix_exists(self, prefix: str) -> bool:
+        response = self._s3.list_objects_v2(
+            Bucket=self.bucket, Prefix=prefix, MaxKeys=1
+        )
+        return response["KeyCount"] > 0

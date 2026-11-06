@@ -19,3 +19,7 @@ class LocalStorage(BaseStorage):
     def exists(self, key: str) -> bool:
         full_path = self.root / key
         return full_path.exists()
+
+    def prefix_exists(self, prefix: str) -> bool:
+        full_path = self.root / prefix
+        return full_path.is_dir() and any(full_path.iterdir())
