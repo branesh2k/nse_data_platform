@@ -18,8 +18,8 @@ filtered to `job_name = stock_vs_market`
 ## Freshness
 
 Runs daily via Airflow DAG `stock_index_relative_dag`.  
-Per-run status and row count: `metadata/operational/job_runs`, filtered to `table_name = stock_vs_market`.  
-No row for a date means the run didn't happen.  
+Per-run status and row count: `metadata/operational/job_runs`, filtered to `job_name = stock_vs_market`.  
+Processes NSE data through raw, Bronze, Silver and Gold layers using PySpark, with Parquet storage in Bronze/Silver and Delta Lake for Gold and operational metadata.
 Table is stale for that date, not zero-filled.
 
 ## Guarantees
@@ -28,7 +28,7 @@ Table is stale for that date, not zero-filled.
 - relative_return is all-null (no prior index data) or none-null (normal run), never partial
 
 Enforced in code: `check_unique_grain`, `check_relative_return_nullness` in `quality/checks.py`.  
-Contract file `contracts/gold_stock_vs_market.yaml` documents this, doesn't enforce it.
+Column definitions are in `metadata/gold/stockvsmarket.yaml`.
 
 ## Schema
 
