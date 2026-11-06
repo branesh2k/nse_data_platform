@@ -386,7 +386,8 @@ resource "aws_iam_role_policy" "nse_actions_publish_artifacts" {
           "ecr:InitiateLayerUpload",
           "ecr:UploadLayerPart",
           "ecr:CompleteLayerUpload",
-          "ecr:PutImage"
+          "ecr:PutImage",
+          "ecr:BatchGetImage"
         ]
         Resource = "arn:aws:ecr:us-east-1:978942695091:repository/nse-ingest"
       },
