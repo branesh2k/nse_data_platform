@@ -66,4 +66,4 @@ columns:
     nullable: true
     notes: >
       All-null across the whole table on the first-day/no-prior-data branch,
-      never a partial mix — enforced by check_relative_return_nullness gate.
+      never a partial mix — Null on every row on the first-day/no-prior-data branch, when index_return is null. Index-side consistency is enforced by the check_index_return_nullness gate.

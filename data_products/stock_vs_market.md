@@ -25,9 +25,9 @@ Table is stale for that date, not zero-filled.
 ## Guarantees
 
 - Unique on (symbol, trade_date)
-- relative_return is all-null (no prior index data) or none-null (normal run), never partial
+- index_return is null on every row only when no prior index date exists (first day in history), and populated on every row otherwise. relative_return is null wherever stock_return or index_return is null.
 
-Enforced in code: `check_unique_grain`, `check_relative_return_nullness` in `quality/checks.py`.  
+Enforced in code: `check_unique_grain`, `check_index_return_nullness.` in `quality/checks.py`.  
 Column definitions are in `metadata/gold/stockvsmarket.yaml`.
 
 ## Schema

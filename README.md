@@ -1,6 +1,6 @@
 # NSE Equity Platform
 
-Medallion lakehouse pipeline for NSE India equity and index data. Ingests daily bhavcopy files, processes them through raw → bronze → silver → gold on PySpark and Delta Lake, and computes stock-vs-market relative performance. Deployed on AWS (Lambda, Glue, S3, MWAA), orchestrated by Airflow, with CI/CD via GitHub Actions and infrastructure managed in Terraform.
+Medallion lakehouse pipeline for NSE India equity and index data. Ingests daily bhavcopy files, Processes NSE data through raw, Bronze, Silver and Gold layers using PySpark, with Parquet storage in Bronze/Silver and Delta Lake for Gold and operational metadata, and computes stock-vs-market relative performance. Deployed on AWS (Lambda, Glue, S3, MWAA), orchestrated by Airflow, with CI/CD via GitHub Actions and infrastructure managed in Terraform.
 
 ## Data Architecture
 
@@ -10,10 +10,10 @@ Medallion lakehouse pipeline for NSE India equity and index data. Ingests daily 
 
 - **Source**: NSE India daily bhavcopy (equity + index)
 - **Ingest**: AWS Lambda, container image
-- **Storage**: S3 (raw / bronze / silver / gold), Delta Lake format
+- **Storage**: S3. Raw as CSV, bronze and silver as Parquet (one partition per date), gold and operational metadata as Delta Lake.
 - **Compute**: PySpark locally, AWS Glue in the cloud
 - **Orchestration**: Apache Airflow - local via Docker Compose, cloud via MWAA
-- **Data quality**: 6-dimension checks at the silver boundary, failing rows quarantined.
+- **Data quality**: Contract-driven checks at the silver boundary (schema, completeness, validity, consistency, uniqueness, timeliness). Bad rows are quarantined; run-level failures stop the run. Gold has two gate checks, in code.
 - **Output**: gold layer computes stock performance relative to the index
 
 ## Tech stack
@@ -48,7 +48,7 @@ Ingest and transform are split into two base job classes - `BaseIngestJob` (HTTP
 │   │   └── gold/
 │   ├── storage/          # BaseStorage, local + S3
 │   ├── context/          # ExecutionContext
-│   ├── quality/          # 6-dimension DQ checks
+│   ├── quality/          # contract-driven DQ checks.
 │   ├── sources/          # NSE client
 │   └── config/           # settings.py
 ├── glue_entry/           # Entrypoints Glue invokes
@@ -104,10 +104,13 @@ terraform apply
 ```
 
 Provisions S3, IAM roles, ECR, Glue jobs, and the MWAA environment (VPC, subnets, NAT gateways included).
+MWAA and the NAT gateways bill hourly while they exist.
 
 Lambda functions are created and updated by CI/CD (`.github/workflows/deploy.yml`), not Terraform - AWS requires the container image to exist in ECR before `CreateFunction` succeeds, so Lambda lifecycle is owned by the GitHub Actions pipeline on every push to `main`.
 
 To tear down:
+
+To stop the hourly cost, destroy only the MWAA environment, NAT gateways, EIPs and VPC using -target. Do not run a plain terraform destroy: it would also delete the S3 bucket holding the data and the Terraform state.
 
 ```bash
 terraform destroy
