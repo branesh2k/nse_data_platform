@@ -100,21 +100,27 @@ def check_timeliness(df, expected_date, logger=None):
             f"[timeliness] all rows dated {expected_date} — assertion held")
 
 
-def check_relative_return_nullness(df, logger=None):
-    """valid states: all null (None-branch) OR none null (normal run).
-    a partial mix means the index join matched some stocks but not others — a bug."""
+def check_index_return_nullness(df, has_prior_date, logger=None):
+    """index_return is identical for every row (one Nifty 50 row per date).
+    no prior date  -> must be all null (first day in history)
+    prior date     -> must have no nulls (the index side worked)"""
     total = df.count()
-    null_rr = df.filter(F.col("relative_return").isNull()).count()
+    null_ir = df.filter(F.col("index_return").isNull()).count()
 
-    if null_rr != 0 and null_rr != total:
+    if has_prior_date and null_ir != 0:
         raise ValueError(
-            f"[gold] relative_return null for {null_rr}/{total} rows — "
-            f"expected all-null (first day) or none-null (normal). "
-            f"Partial nulls indicate an inconsistent index join."
+            f"[gold] index_return null for {null_ir}/{total} rows but a prior "
+            f"index date was found. The index join or previous-close lookup failed."
+        )
+    if not has_prior_date and null_ir != total:
+        raise ValueError(
+            f"[gold] no prior index date found, so index_return should be null "
+            f"for all rows, but only {null_ir}/{total} are null."
         )
     if logger:
         logger.info(
-            f"[gold] relative_return consistency held ({null_rr}/{total} null)")
+            f"[gold] index_return consistency held "
+            f"(prior date: {has_prior_date}, {null_ir}/{total} null)")
 
 # ---------------------
 

@@ -2,7 +2,7 @@
 
 from nse_platform.config.settings import settings
 from nse_platform.jobs.base.base_spark_job import BaseSparkJob
-from nse_platform.quality.checks import check_relative_return_nullness, check_unique_grain
+from nse_platform.quality.checks import check_index_return_nullness, check_unique_grain
 from nse_platform.utils.operational_metadata import log_lineage, log_run
 from nse_platform.utils.partitions import find_prev_silver_date
 from nse_platform.utils.path_builder import gold_path, silver_bhavcopy_path, silver_index_path
@@ -24,6 +24,7 @@ class StockVsMarketGoldJob(BaseSparkJob):
 
         df_index_prev = None
         prev_date = find_prev_silver_date(self.ec.run_date, self.storage)
+        self._has_prior_date = prev_date is not None
         if prev_date is not None:
             prev_date_path = f"{settings.DATA_ROOT}/{silver_index_path(prev_date)}"
             self.ec.logger.info(
@@ -79,7 +80,8 @@ class StockVsMarketGoldJob(BaseSparkJob):
     def validate(self, transformed_data):
         check_unique_grain(transformed_data, keys=[
                            "symbol", "trade_date"], logger=self.ec.logger)
-        check_relative_return_nullness(transformed_data, logger=self.ec.logger)
+        check_index_return_nullness(
+            transformed_data, has_prior_date=self._has_prior_date, logger=self.ec.logger,)
         return transformed_data
 
     def load(self, transformed):
